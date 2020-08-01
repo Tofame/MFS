@@ -3339,6 +3339,7 @@ void Player::onWalkAborted()
 {
 	setNextWalkActionTask(nullptr);
 	sendCancelWalk();
+	sendNewCancelWalk();
 }
 
 void Player::onWalkComplete()

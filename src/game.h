@@ -335,7 +335,8 @@ class Game
 		void playerReceivePing(uint32_t playerId);
 		void playerReceivePingBack(uint32_t playerId);
 		void playerReceiveNewPing(uint32_t playerId, uint16_t ping, uint16_t fps);
-		void playerAutoWalk(uint32_t playerId, const std::vector<Direction>& listDir);
+		void playerAutoWalk(uint32_t playerId, const std::list<Direction>& listDir);
+		void playerNewWalk(uint32_t playerId, Position pos, uint8_t flags, std::list<Direction> listDir);
 		void playerStopAutoWalk(uint32_t playerId);
 		void playerUseItemEx(uint32_t playerId, const Position& fromPos, uint8_t fromStackPos,
 		                     uint16_t fromSpriteId, const Position& toPos, uint8_t toStackPos, uint16_t toSpriteId);

@@ -492,10 +492,9 @@ bool Npc::getRandomStep(Direction& dir) const
 bool Npc::doMoveTo(const Position& pos, int32_t minTargetDist/* = 1*/, int32_t maxTargetDist/* = 1*/,
                    bool fullPathSearch/* = true*/, bool clearSight/* = true*/, int32_t maxSearchDist/* = 0*/)
 {
-	listWalkDir.clear();
-	if (getPathTo(pos, listWalkDir, minTargetDist, maxTargetDist, fullPathSearch, clearSight, maxSearchDist)) {
-		startAutoWalk();
-		return true;
+	std::list<Direction> listDir;
+	if (getPathTo(pos, listDir, 1, 1, true, true)) {
+		startAutoWalk(listDir);
 	}
 	return false;
 }
