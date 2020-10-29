@@ -90,6 +90,7 @@ enum AttrTypes_t {
 	ATTR_WRAPID = 36,
 	ATTR_STOREITEM = 37,
 	ATTR_ATTACK_SPEED = 38,
+	ATTR_AUTOOPEN = 39,
 
 	// version 12.x
 	ATTR_OPENCONTAINER = 39,
@@ -500,7 +501,7 @@ class ItemAttributes
 			| ITEM_ATTRIBUTE_ARMOR | ITEM_ATTRIBUTE_HITCHANCE | ITEM_ATTRIBUTE_SHOOTRANGE | ITEM_ATTRIBUTE_OWNER
 			| ITEM_ATTRIBUTE_DURATION | ITEM_ATTRIBUTE_DECAYSTATE | ITEM_ATTRIBUTE_CORPSEOWNER | ITEM_ATTRIBUTE_CHARGES
 			| ITEM_ATTRIBUTE_FLUIDTYPE | ITEM_ATTRIBUTE_DOORID | ITEM_ATTRIBUTE_DECAYTO | ITEM_ATTRIBUTE_WRAPID | ITEM_ATTRIBUTE_STOREITEM
-			| ITEM_ATTRIBUTE_ATTACK_SPEED;
+			| ITEM_ATTRIBUTE_ATTACK_SPEED | ITEM_ATTRIBUTE_AUTOOPEN;
 		const static uint32_t stringAttributeTypes = ITEM_ATTRIBUTE_DESCRIPTION | ITEM_ATTRIBUTE_TEXT | ITEM_ATTRIBUTE_WRITER
 			| ITEM_ATTRIBUTE_NAME | ITEM_ATTRIBUTE_ARTICLE | ITEM_ATTRIBUTE_PLURALNAME;
 
@@ -1033,6 +1034,22 @@ class Item : virtual public Thing
 		const Tile* getTile() const override;
 		bool isRemoved() const override {
 			return !parent || parent->isRemoved();
+		}
+
+		int8_t getAutoOpen()
+		{
+			if (hasAttribute(ITEM_ATTRIBUTE_AUTOOPEN)) {
+				return getIntAttr(ITEM_ATTRIBUTE_AUTOOPEN);
+			}
+			return -1;
+		}
+		void setAutoOpen(int8_t value)
+		{
+			setIntAttr(ITEM_ATTRIBUTE_AUTOOPEN, value);
+		}
+		void resetAutoOpen()
+		{
+			removeAttribute(ITEM_ATTRIBUTE_AUTOOPEN);
 		}
 
 	protected:
