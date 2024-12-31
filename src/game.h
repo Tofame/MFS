@@ -334,6 +334,7 @@ class Game
 		void playerCloseNpcChannel(uint32_t playerId);
 		void playerReceivePing(uint32_t playerId);
 		void playerReceivePingBack(uint32_t playerId);
+		void playerReceiveNewPing(uint32_t playerId, uint16_t ping, uint16_t fps);
 		void playerAutoWalk(uint32_t playerId, const std::vector<Direction>& listDir);
 		void playerStopAutoWalk(uint32_t playerId);
 		void playerUseItemEx(uint32_t playerId, const Position& fromPos, uint8_t fromStackPos,

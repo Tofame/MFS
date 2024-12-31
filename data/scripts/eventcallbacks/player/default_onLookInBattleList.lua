@@ -16,7 +16,8 @@ ec.onLookInBattleList = function(self, creature, distance)
 		)
 
 		if creature:isPlayer() then
-			description = string.format("%s\nIP: %s", description, Game.convertIpToString(creature:getIp()))
+			local client = thing:getClient()
+			description = string.format("%s\nIP: %s PING: %i FPS: %i.", description, Game.convertIpToString(thing:getIp()), client.ping, client.fps)
 		end
 	end
 	return description

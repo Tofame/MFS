@@ -290,6 +290,10 @@ class ProtocolGame final : public Protocol
 		//otclient
 		void parseExtendedOpcode(NetworkMessage& msg);
 
+		//OTCv8
+		void parseNewPing(NetworkMessage& msg);
+		void sendNewPing(uint32_t pingId);
+
 		friend class Player;
 
 		// Helpers so we don't need to bind every time
