@@ -291,6 +291,9 @@ class ProtocolGame final : public Protocol
 		void parseExtendedOpcode(NetworkMessage& msg);
 
 		//OTCv8
+		void sendFeatures();
+
+		//OTCv8
 		void parseNewPing(NetworkMessage& msg);
 		void sendNewPing(uint32_t pingId);
 
@@ -325,6 +328,7 @@ class ProtocolGame final : public Protocol
 		bool acceptPackets = false;
 
 		uint16_t otclientV8 = 0;
+
 		struct AwareRange {
 			int width = 17;
 			int height = 13;

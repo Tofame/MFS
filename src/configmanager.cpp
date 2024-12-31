@@ -228,6 +228,7 @@ bool ConfigManager::load()
 	boolean[LUA_ITEM_DESC] = getGlobalBoolean(L, "luaItemDesc", false);
 	boolean[CLEAN_PROTECTION_ZONES] = getGlobalBoolean(L, "cleanProtectionZones", false);
 	boolean[HOUSE_DOOR_SHOW_PRICE] = getGlobalBoolean(L, "houseDoorShowPrice", true);
+	boolean[PACKET_COMPRESSION] = getGlobalBoolean(L, "packetCompression", true);
 	boolean[ONLY_INVITED_CAN_MOVE_HOUSE_ITEMS] = getGlobalBoolean(L, "onlyInvitedCanMoveHouseItems", true);
 	boolean[REMOVE_ON_DESPAWN] = getGlobalBoolean(L, "removeOnDespawn", true);
 	boolean[PLAYER_CONSOLE_LOGS] = getGlobalBoolean(L, "showPlayerLogInConsole", true);

@@ -140,6 +140,8 @@ void ProtocolGame::login(const std::string& name, uint32_t accountId, OperatingS
 {
 	// OTCv8 features and extended opcodes
 	if (otclientV8 || operatingSystem >= CLIENTOS_OTCLIENT_LINUX) {
+		if(otclientV8)
+			sendFeatures();
 		NetworkMessage opcodeMessage;
 		opcodeMessage.addByte(0x32);
 		opcodeMessage.addByte(0x00);
@@ -3301,6 +3303,37 @@ void ProtocolGame::parseExtendedOpcode(NetworkMessage& msg)
 
 	// process additional opcodes via lua script event
 	addGameTask(&Game::parsePlayerExtendedOpcode, player->getID(), opcode, buffer);
+}
+
+// OTCv8
+void ProtocolGame::sendFeatures()
+{
+	if(!otclientV8) 
+		return;
+
+	std::map<GameFeature, bool> features;
+	// place for non-standard OTCv8 features
+	features[GameExtendedOpcode] = true;
+	features[GameChangeMapAwareRange] = true;
+	features[GameExtendedClientPing] = true; 
+
+	// packet compression
+	// we don't send feature, because feature assumes all packets are compressed
+	// if adler32 is enabled then compression can be detected automaticly, just adlre32 must be 0
+	if (g_config.getBoolean(ConfigManager::PACKET_COMPRESSION)) {
+		enableCompression();
+	}
+	if(features.empty())
+		return;
+
+	auto msg = getOutputBuffer(1024);
+	msg->addByte(0x43);
+	msg->add<uint16_t>(features.size());
+	for(auto& feature : features) {
+		msg->addByte((uint8_t)feature.first);
+		msg->addByte(feature.second ? 1 : 0);
+	}
+	send(std::move(getCurrentBuffer())); // send this packet immediately
 }
 
 // OTCv8
