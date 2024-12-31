@@ -141,8 +141,6 @@ void ProtocolGame::login(const std::string& name, uint32_t accountId, OperatingS
 {
 	// OTCv8 features and extended opcodes
 	if (otclientV8 || operatingSystem >= CLIENTOS_OTCLIENT_LINUX) {
-		if(otclientV8)
-			sendFeatures();
 		NetworkMessage opcodeMessage;
 		opcodeMessage.addByte(0x32);
 		opcodeMessage.addByte(0x00);

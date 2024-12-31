@@ -831,7 +831,7 @@ bool IOLoginData::savePlayer(Player* player)
 		itemList.emplace_back(0, item);
 	}
 
-	if (!saveItems(player, itemList, storeInboxQuery, propWriteStream)) {
+	if (!saveItems(player, itemList, storeInboxQuery, propWriteStream, openContainers)) {
 		return false;
 	}
 
