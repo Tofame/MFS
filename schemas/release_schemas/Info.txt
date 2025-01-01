@@ -1,0 +1,1 @@
+mfs v1: It's empty schema based on schemas.sql, but I took liberty of creating GOD account: admin/admin
