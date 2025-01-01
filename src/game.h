@@ -49,8 +49,6 @@ enum GameState_t {
 
 static constexpr int32_t EVENT_LIGHTINTERVAL = 10000;
 static constexpr int32_t EVENT_WORLDTIMEINTERVAL = 2500;
-static constexpr int32_t EVENT_DECAYINTERVAL = 250;
-static constexpr int32_t EVENT_DECAY_BUCKETS = 4;
 
 /**
   * Main Game class.
@@ -450,6 +448,8 @@ class Game
 		bool saveAccountStorageValues() const;
 
 		void startDecay(Item* item);
+		void stopDecay(Item* item);
+		void internalDecayItem(Item* item);
 
 		int16_t getWorldTime() { return worldTime; }
 		void updateWorldTime();
@@ -499,8 +499,6 @@ class Game
 		Raids raids;
 		Quests quests;
 
-		std::forward_list<Item*> toDecayItems;
-
 		std::unordered_set<Tile*> getTilesToClean() const {
 			return tilesToClean;
 		}
@@ -521,9 +519,6 @@ class Game
 		bool playerSpeakTo(Player* player, SpeakClasses type, const std::string& receiver, const std::string& text);
 		void playerSpeakToNpc(Player* player, const std::string& text);
 
-		void checkDecay();
-		void internalDecayItem(Item* item);
-
 		std::unordered_map<uint32_t, Player*> players;
 		std::unordered_map<std::string, Player*> mappedPlayerNames;
 		std::unordered_map<uint32_t, Player*> mappedPlayerGuids;
@@ -532,7 +527,6 @@ class Game
 		std::map<uint32_t, uint32_t> stages;
 		std::unordered_map<uint32_t, std::unordered_map<uint32_t, int32_t>> accountStorageMap;
 
-		std::list<Item*> decayItems[EVENT_DECAY_BUCKETS];
 		std::list<Creature*> checkCreatureLists[EVENT_CREATURECOUNT];
 
 		std::vector<Creature*> ToReleaseCreatures;

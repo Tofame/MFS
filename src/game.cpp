@@ -25,6 +25,7 @@
 #include "talkaction.h"
 #include "weapons.h"
 #include "script.h"
+#include "decay.h"
 
 #include <fmt/format.h>
 
@@ -72,7 +73,6 @@ void Game::start(ServiceManager* manager)
 		g_scheduler.addEvent(createSchedulerTask(EVENT_LIGHTINTERVAL, std::bind(&Game::checkLight, this)));
 	}
 	g_scheduler.addEvent(createSchedulerTask(EVENT_CREATURE_THINK_INTERVAL, std::bind(&Game::checkCreatures, this, 0)));
-	g_scheduler.addEvent(createSchedulerTask(EVENT_DECAYINTERVAL, std::bind(&Game::checkDecay, this)));
 }
 
 GameState_t Game::getGameState() const
@@ -1213,6 +1213,7 @@ ReturnValue Game::internalMoveItem(Cylinder* fromCylinder, Cylinder* toCylinder,
 		}
 
 		if (item->isRemoved()) {
+			item->stopDecaying();
 			ReleaseItem(item);
 		}
 	}
@@ -1254,11 +1255,7 @@ ReturnValue Game::internalMoveItem(Cylinder* fromCylinder, Cylinder* toCylinder,
 	}
 
 	if (moveItem && moveItem->getDuration() > 0) {
-		if (moveItem->getDecaying() != DECAYING_TRUE) {
-			moveItem->incrementReferenceCounter();
-			moveItem->setDecaying(DECAYING_TRUE);
-			toDecayItems.push_front(moveItem);
-		}
+		startDecay(moveItem);
 	}
 
 	if (actorPlayer && fromPos && toPos) {
@@ -1339,6 +1336,7 @@ ReturnValue Game::internalAddItem(Cylinder* toCylinder, Item* item, int32_t inde
 		} else {
 			//fully merged with toItem, item will be destroyed
 			item->onRemoved();
+			item->stopDecaying();
 			ReleaseItem(item);
 
 			int32_t itemIndex = toCylinder->getThingIndex(toItem);
@@ -1356,9 +1354,7 @@ ReturnValue Game::internalAddItem(Cylinder* toCylinder, Item* item, int32_t inde
 	}
 
 	if (item->getDuration() > 0) {
-		item->incrementReferenceCounter();
-		item->setDecaying(DECAYING_TRUE);
-		toDecayItems.push_front(item);
+		startDecay(item);
 	}
 
 	return RETURNVALUE_NOERROR;
@@ -1401,9 +1397,7 @@ ReturnValue Game::internalRemoveItem(Item* item, int32_t count /*= -1*/, bool te
 
 		if (item->isRemoved()) {
 			item->onRemoved();
-			if (item->canDecay()) {
-				decayItems->remove(item);
-			}
+			item->stopDecaying();
 			ReleaseItem(item);
 		}
 
@@ -1637,6 +1631,7 @@ Item* Game::transformItem(Item* item, uint16_t newId, int32_t newCount /*= -1*/)
 
 		Cylinder* newParent = item->getParent();
 		if (newParent == nullptr) {
+			item->stopDecaying();
 			ReleaseItem(item);
 			return nullptr;
 		}
@@ -1672,6 +1667,7 @@ Item* Game::transformItem(Item* item, uint16_t newId, int32_t newCount /*= -1*/)
 
 					item->setParent(nullptr);
 					cylinder->postRemoveNotification(item, cylinder, itemIndex);
+					item->stopDecaying();
 					ReleaseItem(item);
 					return newItem;
 				} else {
@@ -1718,14 +1714,11 @@ Item* Game::transformItem(Item* item, uint16_t newId, int32_t newCount /*= -1*/)
 
 	item->setParent(nullptr);
 	cylinder->postRemoveNotification(item, cylinder, itemIndex);
+	item->stopDecaying();
 	ReleaseItem(item);
 
 	if (newItem->getDuration() > 0) {
-		if (newItem->getDecaying() != DECAYING_TRUE) {
-			newItem->incrementReferenceCounter();
-			newItem->setDecaying(DECAYING_TRUE);
-			toDecayItems.push_front(newItem);
-		}
+		startDecay(newItem);
 	}
 
 	return newItem;
@@ -4589,21 +4582,39 @@ bool Game::saveAccountStorageValues() const
 
 void Game::startDecay(Item* item)
 {
-	if (!item || !item->canDecay()) {
+	if (!item) {
 		return;
 	}
 
 	ItemDecayState_t decayState = item->getDecaying();
-	if (decayState == DECAYING_TRUE) {
+	if (decayState == DECAYING_STOPPING || (!item->canDecay() && decayState == DECAYING_TRUE)) {
+		stopDecay(item);
 		return;
 	}
 
-	if (item->getDuration() > 0) {
-		item->incrementReferenceCounter();
-		item->setDecaying(DECAYING_TRUE);
-		toDecayItems.push_front(item);
-	} else {
+	if (!item->canDecay() || decayState == DECAYING_TRUE) {
+		return;
+	}
+
+	int32_t duration = item->getIntAttr(ITEM_ATTRIBUTE_DURATION);
+	if (duration > 0) {
+		g_decay.startDecay(item, duration);
+	}
+	else {
 		internalDecayItem(item);
+	}
+}
+
+void Game::stopDecay(Item* item)
+{
+	if (item->hasAttribute(ITEM_ATTRIBUTE_DECAYSTATE)) {
+		if (item->hasAttribute(ITEM_ATTRIBUTE_DURATION_TIMESTAMP)) {
+			g_decay.stopDecay(item, item->getIntAttr(ITEM_ATTRIBUTE_DURATION_TIMESTAMP));
+			item->removeAttribute(ITEM_ATTRIBUTE_DURATION_TIMESTAMP);
+		}
+		else {
+			item->removeAttribute(ITEM_ATTRIBUTE_DECAYSTATE);
+		}
 	}
 }
 
@@ -4619,50 +4630,6 @@ void Game::internalDecayItem(Item* item)
 			std::cout << "[Debug - Game::internalDecayItem] internalDecayItem failed, error code: " << static_cast<uint32_t>(ret) << ", item id: " << item->getID() << std::endl;
 		}
 	}
-}
-
-void Game::checkDecay()
-{
-	g_scheduler.addEvent(createSchedulerTask(EVENT_DECAYINTERVAL, std::bind(&Game::checkDecay, this)));
-
-	size_t bucket = (lastBucket + 1) % EVENT_DECAY_BUCKETS;
-
-	auto it = decayItems[bucket].begin(), end = decayItems[bucket].end();
-	while (it != end) {
-		Item* item = *it;
-		if (!item->canDecay()) {
-			item->setDecaying(DECAYING_FALSE);
-			ReleaseItem(item);
-			it = decayItems[bucket].erase(it);
-			continue;
-		}
-
-		int32_t duration = item->getDuration();
-		int32_t decreaseTime = std::min<int32_t>(EVENT_DECAYINTERVAL * EVENT_DECAY_BUCKETS, duration);
-
-		duration -= decreaseTime;
-		item->decreaseDuration(decreaseTime);
-
-		if (duration <= 0) {
-			it = decayItems[bucket].erase(it);
-			internalDecayItem(item);
-			ReleaseItem(item);
-		} else if (duration < EVENT_DECAYINTERVAL * EVENT_DECAY_BUCKETS) {
-			it = decayItems[bucket].erase(it);
-			size_t newBucket = (bucket + ((duration + EVENT_DECAYINTERVAL / 2) / 1000)) % EVENT_DECAY_BUCKETS;
-			if (newBucket == bucket) {
-				internalDecayItem(item);
-				ReleaseItem(item);
-			} else {
-				decayItems[newBucket].push_back(item);
-			}
-		} else {
-			++it;
-		}
-	}
-
-	lastBucket = bucket;
-	cleanup();
 }
 
 void Game::checkLight()
@@ -4734,16 +4701,6 @@ void Game::cleanup()
 		item->decrementReferenceCounter();
 	}
 	ToReleaseItems.clear();
-
-	for (Item* item : toDecayItems) {
-		const uint32_t dur = item->getDuration();
-		if (dur >= EVENT_DECAYINTERVAL * EVENT_DECAY_BUCKETS) {
-			decayItems[lastBucket].push_back(item);
-		} else {
-			decayItems[(lastBucket + 1 + dur / 1000) % EVENT_DECAY_BUCKETS].push_back(item);
-		}
-	}
-	toDecayItems.clear();
 }
 
 void Game::ReleaseCreature(Creature* creature)

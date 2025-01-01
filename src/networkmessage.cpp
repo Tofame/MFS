@@ -89,13 +89,17 @@ void NetworkMessage::addItem(uint16_t id, uint8_t count)
 
 	if (it.stackable) {
 		addByte(count);
-	} else if (it.isSplash() || it.isFluidContainer()) {
+	}
+	else if (it.isSplash() || it.isFluidContainer()) {
 		addByte(fluidMap[count & 7]);
 	}
 
 	if (it.isAnimation) {
 		addByte(0xFE); // random phase (0xFF for async)
 	}
+
+	// duration
+	addByte(0x00);
 }
 
 void NetworkMessage::addItem(const Item* item)
@@ -107,12 +111,28 @@ void NetworkMessage::addItem(const Item* item)
 
 	if (it.stackable) {
 		addByte(std::min<uint16_t>(0xFF, item->getItemCount()));
-	} else if (it.isSplash() || it.isFluidContainer()) {
+	}
+	else if (it.isSplash() || it.isFluidContainer()) {
 		addByte(fluidMap[item->getFluidType() & 7]);
 	}
 
 	if (it.isAnimation) {
 		addByte(0xFE); // random phase (0xFF for async)
+	}
+
+	// duration
+	if (item->hasAttribute(ITEM_ATTRIBUTE_DURATION) && item->getDuration() > 0) {
+		if (item->isPickupable() && !item->getContainer()) {
+			addByte(0x01);
+			add<uint32_t>(item->getDuration());
+			addByte(it.stopTime ? 1 : 0);
+		}
+		else {
+			addByte(0x00);
+		}
+	}
+	else {
+		addByte(0x00);
 	}
 }
 

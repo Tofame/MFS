@@ -727,6 +727,14 @@ void Container::startDecaying()
 	}
 }
 
+void Container::stopDecaying()
+{
+	Item::stopDecaying();
+	for (ContainerIterator it = iterator(); it.hasNext(); it.advance()) {
+		g_game.stopDecay(*it);
+	}
+}
+
 ContainerIterator Container::iterator() const
 {
 	ContainerIterator cit;

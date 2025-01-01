@@ -45,17 +45,21 @@ Player::~Player()
 	for (Item* item : inventory) {
 		if (item) {
 			item->setParent(nullptr);
+			item->stopDecaying();
 			item->decrementReferenceCounter();
 		}
 	}
 
 	for (const auto& it : depotLockerMap) {
 		it.second->removeInbox(inbox);
+		it.second->stopDecaying();
 	}
 
+	inbox->stopDecaying();
 	inbox->decrementReferenceCounter();
 
 	storeInbox->setParent(nullptr);
+	storeInbox->stopDecaying();
 	storeInbox->decrementReferenceCounter();
 
 	setWriteItem(nullptr);
