@@ -10,6 +10,10 @@ The original engine, TFS, has become unstable and is unable (due to time constra
 maintaining stability and quality. That's why, we decided to stay with the 1.4.2 release of it, which has been the most stable.
 The point of MFS is to bring stable release that anyone can download && compile effortlessly.
 
+At the moment, as already mentioned MFS is not going in a direction where it will become an engine with rich features.
+If you want something like that you can check [BlackTeck](https://github.com/Black-Tek/BlackTek-Server).
+MFS's point is to become optimized, compillable, bug-less, stable engine and a base for creators to make their own game of vision become true.
+
 ## Getting Started
 
 * [Compiling](https://github.com/otland/forgottenserver/wiki/Compiling), alternatively download [releases](https://github.com/otland/forgottenserver/releases)
