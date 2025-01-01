@@ -580,7 +580,13 @@ void Creature::onCreatureMove(Creature* creature, const Tile* newTile, const Pos
 
 	if (creature == followCreature || (creature == this && followCreature)) {
 		if (hasFollowPath) {
-			isUpdatingPath = true;
+			if ((creature == followCreature) && listWalkDir.empty()) {
+				//This should make monsters more responsive without needing to decrease creature think interval
+				isUpdatingPath = false;
+				goToFollowCreature();
+			} else {
+				isUpdatingPath = true;
+			}
 		}
 
 		if (newPos.z != oldPos.z || !canSee(followCreature->getPosition())) {
