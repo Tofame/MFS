@@ -187,11 +187,16 @@ void Creature::onWalk()
 		uint32_t flags = FLAG_IGNOREFIELDDAMAGE;
 		if (getNextStep(dir, flags)) {
 			ReturnValue ret = g_game.internalMoveCreature(this, dir, flags);
+			// For now we disable the code below as its CPU hungry and kinda useless.
+			/*
 			if (player && ret != RETURNVALUE_NOERROR) { // it's player and walk path is invalid
-				if (tryToFixAutoWalk(dir)) { // correction for auto walking
-					ret = g_game.internalMoveCreature(this, dir, flags);
-				}
+				if (tryToFixAutoWalk(dir)) { // found new path
+                    if (getNextStep(dir, flags)) {
+                        ret = g_game.internalMoveCreature(this, dir, flags);
+                    }
+                }
 			}
+			*/
 			if (ret != RETURNVALUE_NOERROR) {
 				if (player) {
 					player->sendCancelMessage(ret);
@@ -202,11 +207,11 @@ void Creature::onWalk()
 				forceUpdateFollowPath = true;
 			}
 		} else {
-			stopEventWalk();
-
 			if (listWalkDir.empty()) {
 				onWalkComplete();
 			}
+
+			stopEventWalk();
 		}
 	}
 
@@ -224,17 +229,15 @@ void Creature::onWalk()
 
 void Creature::onWalk(Direction& dir)
 {
-	if (!hasCondition(CONDITION_DRUNK)) {
-		return;
+	if (hasCondition(CONDITION_DRUNK)) {
+		uint32_t r = uniform_random(0, 20);
+		if (r <= DIRECTION_DIAGONAL_MASK) {
+			if (r < DIRECTION_DIAGONAL_MASK) {
+				dir = static_cast<Direction>(r);
+			}
+			g_game.internalCreatureSay(this, TALKTYPE_MONSTER_SAY, "Hicks!", false);
+		}
 	}
-
-	uint16_t rand = uniform_random(0, 399);
-	if (rand / 4 > getDrunkenness()) {
-		return;
-	}
-
-	dir = static_cast<Direction>(rand % 4);
-	g_game.internalCreatureSay(this, TALKTYPE_MONSTER_SAY, "Hicks!", false);
 }
 
 bool Creature::getNextStep(Direction& dir, uint32_t&)
@@ -243,8 +246,8 @@ bool Creature::getNextStep(Direction& dir, uint32_t&)
 		return false;
 	}
 
-	dir = listWalkDir.back();
-	listWalkDir.pop_back();
+	dir = listWalkDir.front();
+	listWalkDir.pop_front();
 	onWalk(dir);
 	return true;
 }
@@ -897,7 +900,7 @@ void Creature::goToFollowCreature()
 					listWalkDir.clear();
 					if (getPathTo(followCreature->getPosition(), listWalkDir, fpp)) {
 						hasFollowPath = true;
-						startAutoWalk();
+						startAutoWalk(listWalkDir);
 					} else {
 						hasFollowPath = false;
 					}
@@ -910,13 +913,13 @@ void Creature::goToFollowCreature()
 				listWalkDir.push_back(dir);
 
 				hasFollowPath = true;
-				startAutoWalk();
+				startAutoWalk(listWalkDir);
 			}
 		} else {
 			listWalkDir.clear();
 			if (getPathTo(followCreature->getPosition(), listWalkDir, fpp)) {
 				hasFollowPath = true;
-				startAutoWalk();
+				startAutoWalk(listWalkDir);
 			} else {
 				hasFollowPath = false;
 			}

@@ -1052,7 +1052,7 @@ bool Monster::walkToSpawn()
 	}
 
 	walkingToSpawn = true;
-	startAutoWalk();
+	startAutoWalk(listWalkDir);
 	return true;
 }
 
