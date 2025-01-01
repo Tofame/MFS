@@ -115,6 +115,12 @@ end
 
 function getMoneyCount(string)
 	local b, e = string:find("%d+")
+
+	-- No digits found in the string
+    if not b then
+        return -1
+    end
+
 	local tonumber = tonumber(string:sub(b, e))
 	if tonumber > 2 ^ 32 - 1 then
 		print("Warning: Casting value to 32bit to prevent crash\n"..debug.traceback())
