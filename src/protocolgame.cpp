@@ -3364,6 +3364,7 @@ void ProtocolGame::sendFeatures()
 	features[GameExtendedClientPing] = true; 
 	features[GameNewWalking] = true;
 	features[GameEnvironmentEffect] = false; // disable it, useless
+	features[GameDisplayItemDuration] = true;
 
 	// packet compression
 	// we don't send feature, because feature assumes all packets are compressed

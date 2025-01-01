@@ -662,7 +662,8 @@ enum GameFeature {
 	// advanced features
 	GamePacketSizeU32 = 110,
 	GamePacketCompression = 111,
-	LastGameFeature = 120
+	GameDisplayItemDuration = 129,
+	LastGameFeature = 129
 };
 
 static constexpr int32_t CHANNEL_GUILD = 0x00;
