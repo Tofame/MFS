@@ -14,7 +14,6 @@ double Creature::speedB = 261.29;
 double Creature::speedC = -4795.01;
 
 extern Game g_game;
-extern ConfigManager g_config;
 extern CreatureEvents* g_creatureEvents;
 
 Creature::Creature()
@@ -614,7 +613,7 @@ CreatureVector Creature::getKillers()
 {
 	CreatureVector killers;
 	const int64_t timeNow = OTSYS_TIME();
-	const uint32_t inFightTicks = g_config.getNumber(ConfigManager::PZ_LOCKED);
+	const uint32_t inFightTicks = getNumber(ConfigManager::PZ_LOCKED);
 	for (const auto& it : damageMap) {
 		Creature* attacker = g_game.getCreatureByID(it.first);
 		if (attacker && attacker != this && timeNow - it.second.ticks <= inFightTicks) {
@@ -640,7 +639,7 @@ void Creature::onDeath()
 	Creature* mostDamageCreature = nullptr;
 
 	const int64_t timeNow = OTSYS_TIME();
-	const uint32_t inFightTicks = g_config.getNumber(ConfigManager::PZ_LOCKED);
+	const uint32_t inFightTicks = getNumber(ConfigManager::PZ_LOCKED);
 	int32_t mostDamage = 0;
 	std::map<Creature*, uint64_t> experienceMap;
 	for (const auto& it : damageMap) {
@@ -757,7 +756,7 @@ bool Creature::hasBeenAttacked(uint32_t attackerId)
 	if (it == damageMap.end()) {
 		return false;
 	}
-	return (OTSYS_TIME() - it->second.ticks) <= g_config.getNumber(ConfigManager::PZ_LOCKED);
+	return (OTSYS_TIME() - it->second.ticks) <= getNumber(ConfigManager::PZ_LOCKED);
 }
 
 Item* Creature::getCorpse(Creature*, Creature*)

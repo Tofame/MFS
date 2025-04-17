@@ -9,8 +9,6 @@
 #include "scheduler.h"
 #include "pugicast.h"
 
-extern ConfigManager g_config;
-
 GlobalEvents::GlobalEvents() :
 	scriptInterface("GlobalEvent Interface")
 {

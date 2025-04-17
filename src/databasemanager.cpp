@@ -1,27 +1,24 @@
-// Copyright 2022 The Forgotten Server Authors. All rights reserved.
+// Copyright 2023 The Forgotten Server Authors. All rights reserved.
 // Use of this source code is governed by the GPL-2.0 License that can be found in the LICENSE file.
 
 #include "otpch.h"
 
-#include "configmanager.h"
 #include "databasemanager.h"
+
+#include "configmanager.h"
 #include "luascript.h"
-
-#include <fmt/format.h>
-
-extern ConfigManager g_config;
 
 bool DatabaseManager::optimizeTables()
 {
 	Database& db = Database::getInstance();
 
-	DBResult_ptr result = db.storeQuery(fmt::format("SELECT `TABLE_NAME` FROM `information_schema`.`TABLES` WHERE `TABLE_SCHEMA` = {:s} AND `DATA_FREE` > 0", db.escapeString(g_config.getString(ConfigManager::MYSQL_DB))));
+	DBResult_ptr result = db.storeQuery(fmt::format("SELECT `TABLE_NAME` FROM `information_schema`.`TABLES` WHERE `TABLE_SCHEMA` = {:s} AND `DATA_FREE` > 0", db.escapeString(getString(ConfigManager::MYSQL_DB))));
 	if (!result) {
 		return false;
 	}
 
 	do {
-		std::string tableName = result->getString("TABLE_NAME");
+		const auto tableName = result->getString("TABLE_NAME");
 		std::cout << "> Optimizing table " << tableName << "..." << std::flush;
 
 		if (db.executeQuery(fmt::format("OPTIMIZE TABLE `{:s}`", tableName))) {
@@ -36,13 +33,13 @@ bool DatabaseManager::optimizeTables()
 bool DatabaseManager::tableExists(const std::string& tableName)
 {
 	Database& db = Database::getInstance();
-	return db.storeQuery(fmt::format("SELECT `TABLE_NAME` FROM `information_schema`.`tables` WHERE `TABLE_SCHEMA` = {:s} AND `TABLE_NAME` = {:s} LIMIT 1", db.escapeString(g_config.getString(ConfigManager::MYSQL_DB)), db.escapeString(tableName))).get() != nullptr;
+	return db.storeQuery(fmt::format("SELECT `TABLE_NAME` FROM `information_schema`.`tables` WHERE `TABLE_SCHEMA` = {:s} AND `TABLE_NAME` = {:s} LIMIT 1", db.escapeString(getString(ConfigManager::MYSQL_DB)), db.escapeString(tableName))).get();
 }
 
 bool DatabaseManager::isDatabaseSetup()
 {
 	Database& db = Database::getInstance();
-	return db.storeQuery(fmt::format("SELECT `TABLE_NAME` FROM `information_schema`.`tables` WHERE `TABLE_SCHEMA` = {:s}", db.escapeString(g_config.getString(ConfigManager::MYSQL_DB)))).get() != nullptr;
+	return db.storeQuery(fmt::format("SELECT `TABLE_NAME` FROM `information_schema`.`tables` WHERE `TABLE_SCHEMA` = {:s}", db.escapeString(getString(ConfigManager::MYSQL_DB)))).get();
 }
 
 int32_t DatabaseManager::getDatabaseVersion()

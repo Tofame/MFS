@@ -1,19 +1,18 @@
-// Copyright 2022 The Forgotten Server Authors. All rights reserved.
+// Copyright 2023 The Forgotten Server Authors. All rights reserved.
 // Use of this source code is governed by the GPL-2.0 License that can be found in the LICENSE file.
 
 #include "otpch.h"
 
+#include "house.h"
+
+#include "bed.h"
+#include "configmanager.h"
+#include "game.h"
+#include "housetile.h"
+#include "inbox.h"
+#include "iologindata.h"
 #include "pugicast.h"
 
-#include "house.h"
-#include "iologindata.h"
-#include "game.h"
-#include "configmanager.h"
-#include "bed.h"
-
-#include <fmt/format.h>
-
-extern ConfigManager g_config;
 extern Game g_game;
 
 House::House(uint32_t houseId) : id(houseId) {}
@@ -70,7 +69,7 @@ void House::setOwner(uint32_t guid, bool updateDatabase/* = true*/, Player* play
 			door->setAccessList("");
 		}
 	} else {
-		std::string strRentPeriod = asLowerCaseString(g_config.getString(ConfigManager::HOUSE_RENT_PERIOD));
+		std::string strRentPeriod = boost::algorithm::to_lower_copy(getString(ConfigManager::HOUSE_RENT_PERIOD));
 		time_t currentTime = time(nullptr);
 		if (strRentPeriod == "yearly") {
 			currentTime += 24 * 60 * 60 * 365;
@@ -103,9 +102,9 @@ void House::setOwner(uint32_t guid, bool updateDatabase/* = true*/, Player* play
 
 void House::updateDoorDescription() const
 {
-	const int32_t housePrice = g_config.getNumber(ConfigManager::HOUSE_PRICE);
+	const int32_t housePrice = getNumber(ConfigManager::HOUSE_PRICE);
 	for (const auto& it : doorSet) {
-		it->setSpecialDescription(fmt::format("It belongs to house '{:s}'. {:s} owns this house.{:s}", houseName, (owner != 0) ? ownerName : "Nobody", g_config.getBoolean(ConfigManager::HOUSE_DOOR_SHOW_PRICE) && (housePrice != -1) && (owner == 0) ? fmt::format(" It costs {:d} gold coins.", (houseTiles.size() * housePrice)) : ""));
+		it->setSpecialDescription(fmt::format("It belongs to house '{:s}'. {:s} owns this house.{:s}", houseName, (owner != 0) ? ownerName : "Nobody", getBoolean(ConfigManager::HOUSE_DOOR_SHOW_PRICE) && (housePrice != -1) && (owner == 0) ? fmt::format(" It costs {:d} gold coins.", (houseTiles.size() * housePrice)) : ""));
 	}
 }
 
@@ -115,7 +114,7 @@ AccessHouseLevel_t House::getHouseAccessLevel(const Player* player) const
 		return HOUSE_OWNER;
 	}
 
-	if (g_config.getBoolean(ConfigManager::HOUSE_OWNED_BY_ACCOUNT)) {
+	if (getBoolean(ConfigManager::HOUSE_OWNED_BY_ACCOUNT)) {
 		if (ownerAccountId == player->getAccount()) {
 			return HOUSE_OWNER;
 		}
@@ -163,7 +162,7 @@ bool House::kickPlayer(Player* player, Player* target)
 	return true;
 }
 
-void House::setAccessList(uint32_t listId, const std::string& textlist)
+void House::setAccessList(uint32_t listId, std::string_view textlist)
 {
 	if (listId == GUEST_LIST) {
 		guestList.parseList(textlist);
@@ -325,7 +324,7 @@ bool House::canEditAccessList(uint32_t listId, const Player* player)
 
 HouseTransferItem* House::getTransferItem()
 {
-	if (transferItem != nullptr) {
+	if (transferItem) {
 		return nullptr;
 	}
 
@@ -383,7 +382,7 @@ bool House::executeTransfer(HouseTransferItem* item, Player* newOwner)
 	return true;
 }
 
-void AccessList::parseList(const std::string& list)
+void AccessList::parseList(std::string_view list)
 {
 	playerList.clear();
 	guildRankList.clear();
@@ -393,7 +392,7 @@ void AccessList::parseList(const std::string& list)
 		return;
 	}
 
-	std::istringstream listStream(list);
+	std::istringstream listStream{this->list};
 	std::string line;
 
 	uint16_t lineNo = 1;
@@ -402,16 +401,13 @@ void AccessList::parseList(const std::string& list)
 			break;
 		}
 
-		trimString(line);
-		trim_left(line, '\t');
-		trim_right(line, '\t');
-		trimString(line);
+		boost::algorithm::trim(line);
 
 		if (line.empty() || line.front() == '#' || line.length() > 100) {
 			continue;
 		}
 
-		toLowerCaseString(line);
+		boost::algorithm::to_lower(line);
 
 		std::string::size_type at_pos = line.find("@");
 		if (at_pos != std::string::npos) {
@@ -521,7 +517,7 @@ Attr_ReadValue Door::readAttr(AttrTypes_t attr, PropStream& propStream)
 
 void Door::setHouse(House* house)
 {
-	if (this->house != nullptr) {
+	if (this->house) {
 		return;
 	}
 
@@ -545,7 +541,7 @@ bool Door::canUse(const Player* player)
 	return accessList->isInList(player);
 }
 
-void Door::setAccessList(const std::string& textlist)
+void Door::setAccessList(std::string_view textlist)
 {
 	if (!accessList) {
 		accessList.reset(new AccessList());
@@ -681,6 +677,7 @@ void Houses::payHouses(RentPeriod_t rentPeriod) const
 			}
 
 			house->setPaidUntil(paidUntil);
+			house->setPayRentWarnings(0);
 		} else {
 			if (house->getPayRentWarnings() < 7) {
 				int32_t daysLeft = 7 - house->getPayRentWarnings();

@@ -8,8 +8,6 @@
 
 #include <mysql/errmsg.h>
 
-extern ConfigManager g_config;
-
 Database::~Database()
 {
 	if (handle != nullptr) {
@@ -31,7 +29,7 @@ bool Database::connect()
 	mysql_options(handle, MYSQL_OPT_RECONNECT, &reconnect);
 
 	// connects to database
-	if (!mysql_real_connect(handle, g_config.getString(ConfigManager::MYSQL_HOST).c_str(), g_config.getString(ConfigManager::MYSQL_USER).c_str(), g_config.getString(ConfigManager::MYSQL_PASS).c_str(), g_config.getString(ConfigManager::MYSQL_DB).c_str(), g_config.getNumber(ConfigManager::SQL_PORT), g_config.getString(ConfigManager::MYSQL_SOCK).c_str(), 0)) {
+	if (!mysql_real_connect(handle, getString(ConfigManager::MYSQL_HOST).c_str(), getString(ConfigManager::MYSQL_USER).c_str(), getString(ConfigManager::MYSQL_PASS).c_str(), getString(ConfigManager::MYSQL_DB).c_str(), getNumber(ConfigManager::SQL_PORT), getString(ConfigManager::MYSQL_SOCK).c_str(), 0)) {
 		std::cout << std::endl << "MySQL Error Message: " << mysql_error(handle) << std::endl;
 		return false;
 	}
