@@ -905,9 +905,9 @@ uint32_t Item::getWeight() const
 	return weight;
 }
 
-void handleRuneDescription(std::ostringstream& s, const ItemType& it, const Item* item, int32_t& const subType);
-void handleWeaponDistanceDescription(std::ostringstream& s, const ItemType& it, const Item* item, int32_t& const subType);
-void handleWeaponMeleeDescription(std::ostringstream& s, const ItemType& it, const Item* item, int32_t& const subType, bool& begin);
+void handleRuneDescription(std::ostringstream& s, const ItemType& it, const Item* item, const int32_t& subType);
+void handleWeaponDistanceDescription(std::ostringstream& s, const ItemType& it, const Item* item, const int32_t& subType);
+void handleWeaponMeleeDescription(std::ostringstream& s, const ItemType& it, const Item* item, const int32_t& subType, bool& begin);
 
 void handleSkillsDescription(std::ostringstream& s, const ItemType& it, bool& begin);
 void handleStatsDescription(std::ostringstream& s, const ItemType& it, bool& begin);
@@ -1500,7 +1500,7 @@ const bool& ItemAttributes::CustomAttribute::get<bool>() {
 }
 
 
-void handleRuneDescription(std::ostringstream& s, const ItemType& it, const Item* item, int32_t& const subType) {
+void handleRuneDescription(std::ostringstream& s, const ItemType& it, const Item* item, const int32_t& subType) {
 	if (RuneSpell* rune = g_spells->getRuneSpell(it.id)) {
 		int32_t tmpSubType = subType;
 		if (item) {
@@ -1553,7 +1553,7 @@ void handleRuneDescription(std::ostringstream& s, const ItemType& it, const Item
 	}
 }
 
-void handleWeaponDistanceDescription(std::ostringstream& s, const ItemType& it, const Item* item, int32_t& const subType) {
+void handleWeaponDistanceDescription(std::ostringstream& s, const ItemType& it, const Item* item, const int32_t& subType) {
 	s << " (Range:" << static_cast<uint16_t>(item ? item->getShootRange() : it.shootRange);
 
 	int32_t attack;
@@ -1575,7 +1575,7 @@ void handleWeaponDistanceDescription(std::ostringstream& s, const ItemType& it, 
 	}
 }
 
-void handleWeaponMeleeDescription(std::ostringstream& s, const ItemType& it, const Item* item, int32_t& const subType, bool& begin) {
+void handleWeaponMeleeDescription(std::ostringstream& s, const ItemType& it, const Item* item, const int32_t& subType, bool& begin) {
 	int32_t attack, defense, extraDefense;
 	if (item) {
 		attack = item->getAttack();
