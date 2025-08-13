@@ -1,3 +1,13 @@
+## Update 2025
+Due to the rise of more projects focused on maintaining TFS 1.4.2 (10.98 protocol) - which was the best and most stable - I’ve decided to archive MFS.
+MFS (formerly TMS) was one of the first projects to commit to upkeeping 1.4.2. Now, with two new projects by new maintainers continuing this work, it’s better to direct you, the users, to them. 🙂
+
+[BlackTek-Server, custom 1.4.2 engine, aiming to be general purpose game-engine one day](https://github.com/Black-Tek/BlackTek-Server)
+
+[alysonjacomin's forgottenserver-10.98 - perfected 1.4.2 with bug fixes, focused on stability](https://github.com/alysonjacomin/forgottenserver-10.98)
+
+--
+--
 ## What is MFS?
 
 **MFS** is an open source **2D Top Down MMORPG Game Server**, with tailor-made gameplay and tile based movement,  developed in modern C++.
