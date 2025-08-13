@@ -16,6 +16,6 @@ MFS's point is to become optimized, compillable, bug-less, stable engine and a b
 
 ## Getting Started
 
-* [Compiling](https://github.com/otland/forgottenserver/wiki/Compiling), alternatively download [releases](https://github.com/otland/forgottenserver/releases)
+* [Compiling](https://github.com/Tofame/MFS/blob/main/vc22/-%20Commands%20to%20compiling.h).
 * [Scripting Reference](https://github.com/otland/forgottenserver/wiki/Script-Interface)
 * [Client working with MFS out of the box](https://github.com/OTAcademy/otclientv8)
