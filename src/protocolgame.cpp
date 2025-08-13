@@ -800,8 +800,8 @@ bool ProtocolGame::canSee(int32_t x, int32_t y, int32_t z) const
 
 	//negative offset means that the action taken place is on a lower floor than ourself
 	int32_t offsetz = myPos.getZ() - z;
-	if ((x >= myPos.getX() - awareRange.left() + offsetz) && (x <= myPos.getX() + awareRange.right() + offsetz) &&
-		(y >= myPos.getY() - awareRange.top() + offsetz) && (y <= myPos.getY() + awareRange.bottom() + offsetz)) {
+	if ((x >= myPos.getX() - Map::maxClientViewportX + offsetz) && (x <= myPos.getX() + (Map::maxClientViewportX + 1) + offsetz) &&
+		(y >= myPos.getY() - Map::maxClientViewportY + offsetz) && (y <= myPos.getY() + (Map::maxClientViewportY + 1) + offsetz)) {
 		return true;
 	}
 	return false;
@@ -2219,19 +2219,14 @@ void ProtocolGame::sendCloseContainer(uint8_t cid)
 
 void ProtocolGame::sendCreatureTurn(const Creature* creature, uint32_t stackPos)
 {
-	if (!canSee(creature)) {
+	if (!canSee(creature) || stackPos >= 10) {
 		return;
 	}
 
 	NetworkMessage msg;
 	msg.addByte(0x6B);
-	if (stackPos >= 10) {
-		msg.add<uint16_t>(0xFFFF);
-		msg.add<uint32_t>(creature->getID());
-	} else {
-		msg.addPosition(creature->getPosition());
-		msg.addByte(stackPos);
-	}
+	msg.addPosition(creature->getPosition());
+	msg.addByte(stackPos);
 
 	msg.add<uint16_t>(0x63);
 	msg.add<uint32_t>(creature->getID());
